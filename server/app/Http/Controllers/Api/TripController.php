@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTripRequest;
 use App\Http\Resources\TripResource;
+use App\Mail\TripConfirmed;
 use App\Mail\TripCreated;
 use App\Models\Participant;
 use App\Models\Trip;
@@ -78,11 +79,11 @@ class TripController extends Controller
 
             Participant::insert($participants);
 
-            Mail::to($request->owner_email)->send(new TripCreated($trip));
+            Mail::to($request->owner_email, $request->owner_name)->send(new TripCreated($trip));
 
             DB::commit();
 
-            return response()->json(['tripId' => $trip->id], 201);
+            return response()->json(['trip_id' => $trip->id], 201);
         } catch (Exception $e) {
             DB::rollBack();
 
@@ -127,6 +128,26 @@ class TripController extends Controller
      */
     public function confirm(string $tripId)
     {
-        return response()->json(['tripId' => $tripId]);
+        $trip = Trip::with(['participants' => function ($query) {
+            $query->where('is_owner', false);
+        }])->find($tripId);
+
+        if (!$trip) {
+            return response()->json(['error' => 'Trip not found'], 404);
+        }
+
+        if ($trip->is_confirmed) {
+            return redirect("http://localhost:3000/trips/{$trip->id}");
+        }
+
+        $trip->is_confirmed = true;
+
+        $trip->save();
+
+        foreach ($trip->participants as $participant) {
+            Mail::to($participant->email)->queue(new TripConfirmed($trip, $participant));
+        }
+
+        return redirect("http://localhost:3000/trips/{$trip->id}");
     }
 }

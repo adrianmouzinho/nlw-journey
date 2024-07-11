@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\Participant;
 use App\Models\Trip;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -12,7 +13,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class TripCreated extends Mailable
+class TripConfirmed extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -21,6 +22,7 @@ class TripCreated extends Mailable
      */
     public function __construct(
         public Trip $trip,
+        public Participant $participant,
     ) {
     }
 
@@ -31,7 +33,7 @@ class TripCreated extends Mailable
     {
         return new Envelope(
             from: new Address('oi@plann.er', 'Equipe plann.er'),
-            subject: "Confirme sua viagem para {$this->trip->destination}",
+            subject: "Confirme sua presença na viagem para {$this->trip->destination}",
         );
     }
 
@@ -43,10 +45,10 @@ class TripCreated extends Mailable
         $formattedStartDate = Carbon::parse($this->trip->starts_at)->translatedFormat('j \d\e F \d\e Y');
         $formattedEndDate = Carbon::parse($this->trip->ends_at)->translatedFormat('j \d\e F \d\e Y');
 
-        $confirmationLink = "http://localhost:80/api/trips/{$this->trip->id}/confirm";
+        $confirmationLink = "http://localhost:80/api/participants/{$this->participant->id}/confirm";
 
         return new Content(
-            view: 'mail.trips.created',
+            view: 'mail.trips.confirmed',
             with: [
                 'formattedStartDate' => $formattedStartDate,
                 'formattedEndDate' => $formattedEndDate,

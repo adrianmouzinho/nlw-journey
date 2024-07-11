@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Participant extends Model
+class Link extends Model
 {
     use HasFactory;
 
@@ -14,10 +14,8 @@ class Participant extends Model
 
     protected $fillable = [
         'trip_id',
-        'name',
-        'email',
-        'is_confirmed',
-        'is_owner',
+        'title',
+        'url',
     ];
 
     public function trip(): BelongsTo

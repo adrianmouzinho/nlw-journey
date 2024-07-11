@@ -21,4 +21,14 @@ class Trip extends Model
     {
         return $this->hasMany(Participant::class);
     }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
+
+    public function links(): HasMany
+    {
+        return $this->hasMany(Link::class);
+    }
 }
