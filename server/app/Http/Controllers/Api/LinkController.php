@@ -7,7 +7,6 @@ use App\Http\Requests\StoreLinkRequest;
 use App\Http\Resources\LinkResource;
 use App\Models\Link;
 use App\Models\Trip;
-use Illuminate\Http\Request;
 
 class LinkController extends Controller
 {
@@ -19,18 +18,10 @@ class LinkController extends Controller
         $trip = Trip::with('links')->find($tripId);
 
         if (!$trip) {
-            return response()->json(['error' => 'Trip not found'], 404);
+            return response()->json(['error' => 'Trip not found.'], 404);
         }
 
         return LinkResource::collection($trip->links);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -43,7 +34,7 @@ class LinkController extends Controller
         $trip = Trip::find($tripId);
 
         if (!$trip) {
-            return response()->json(['error' => 'Trip not found'], 404);
+            return response()->json(['error' => 'Trip not found.'], 404);
         }
 
         $link = Link::create([
@@ -53,37 +44,5 @@ class LinkController extends Controller
         ]);
 
         return response()->json(['link_id' => $link->id], 201);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Link $link)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Link $link)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Link $link)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Link $link)
-    {
-        //
     }
 }

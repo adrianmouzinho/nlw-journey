@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTripRequest;
+use App\Http\Requests\UpdateTripRequest;
 use App\Http\Resources\TripResource;
 use App\Mail\TripConfirmed;
 use App\Mail\TripCreated;
@@ -11,29 +12,11 @@ use App\Models\Participant;
 use App\Models\Trip;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 class TripController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $trips = Trip::all();
-        return TripResource::collection($trips);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
     /**
      * Store a newly created resource in storage.
      */
@@ -46,7 +29,7 @@ class TripController extends Controller
         }
 
         if (Carbon::parse($request->ends_at)->isBefore($request->starts_at)) {
-            return response()->json(['error' => 'Invalid trip end date.'], 500);
+            return response()->json(['error' => 'Invalid trip end date.'], 422);
         }
 
         DB::beginTransaction();
@@ -94,33 +77,45 @@ class TripController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Trip $trip)
+    public function show(string $tripId)
     {
-        //
-    }
+        $trip = Trip::find($tripId);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Trip $trip)
-    {
-        //
+        if (!$trip) {
+            return response()->json(['error' => 'Trip not found.'], 404);
+        }
+
+        return new TripResource($trip);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Trip $trip)
+    public function update(UpdateTripRequest $request, string $tripId)
     {
-        //
-    }
+        $request->validated();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Trip $trip)
-    {
-        //
+        if (Carbon::parse($request->starts_at)->isPast()) {
+            return response()->json(['error' => 'Invalid trip start date.'], 422);
+        }
+
+        if (Carbon::parse($request->ends_at)->isBefore($request->starts_at)) {
+            return response()->json(['error' => 'Invalid trip end date.'], 422);
+        }
+
+        $trip = Trip::find($tripId);
+
+        if (!$trip) {
+            return response()->json(['error' => 'Trip not found.'], 404);
+        }
+
+        $trip->destination = $request->destination;
+        $trip->starts_at = $request->starts_at;
+        $trip->ends_at = $request->ends_at;
+
+        $trip->save();
+
+        return response()->json(['trip_id' => $tripId], 200);
     }
 
     /**
@@ -133,11 +128,11 @@ class TripController extends Controller
         }])->find($tripId);
 
         if (!$trip) {
-            return response()->json(['error' => 'Trip not found'], 404);
+            return response()->json(['error' => 'Trip not found.'], 404);
         }
 
         if ($trip->is_confirmed) {
-            return redirect("http://localhost:3000/trips/{$trip->id}");
+            return redirect(config('app.web_url') . "/trips/{$trip->id}");
         }
 
         $trip->is_confirmed = true;
@@ -148,6 +143,6 @@ class TripController extends Controller
             Mail::to($participant->email)->queue(new TripConfirmed($trip, $participant));
         }
 
-        return redirect("http://localhost:3000/trips/{$trip->id}");
+        return redirect(config('app.web_url') . "/trips/{$trip->id}");
     }
 }

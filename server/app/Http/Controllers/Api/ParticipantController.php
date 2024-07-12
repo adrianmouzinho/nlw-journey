@@ -3,65 +3,41 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\InviteParticipantRequest;
+use App\Http\Resources\ParticipantResource;
+use App\Mail\TripConfirmed;
 use App\Models\Participant;
-use Illuminate\Http\Request;
+use App\Models\Trip;
+use Illuminate\Support\Facades\Mail;
 
 class ParticipantController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(string $tripId)
     {
-        //
-    }
+        $trip = Trip::with('participants')->find($tripId);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        if (!$trip) {
+            return response()->json(['error' => 'Trip not found.'], 404);
+        }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
+        return ParticipantResource::collection($trip->participants);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Participant $participant)
+    public function show(string $participantId)
     {
-        //
-    }
+        $participant = Participant::find($participantId);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Participant $participant)
-    {
-        //
-    }
+        if (!$participant) {
+            return response()->json(['error' => 'Participant not found.'], 404);
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Participant $participant)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Participant $participant)
-    {
-        //
+        return new ParticipantResource($participant);
     }
 
     /**
@@ -76,13 +52,36 @@ class ParticipantController extends Controller
         }
 
         if ($participant->is_confirmed) {
-            return redirect("http://localhost:3000/trips/{$participant->trip_id}");
+            return redirect(config('app.web_url') . "/trips/{$participant->trip_id}");
         }
 
         $participant->is_confirmed = true;
 
         $participant->save();
 
-        return redirect("http://localhost:3000/trips/{$participant->trip_id}");
+        return redirect(config('app.web_url') . "/trips/{$participant->trip_id}");
+    }
+
+    /**
+     * Invite to the specified trip.
+     */
+    public function invite(InviteParticipantRequest $request, string $tripId)
+    {
+        $request->validated();
+
+        $trip = Trip::find($tripId);
+
+        if (!$trip) {
+            return response()->json(['error' => 'Trip not found.'], 404);
+        }
+
+        $participant = Participant::create([
+            'email' => $request->email,
+            'trip_id' => $tripId,
+        ]);
+
+        Mail::to($request->email)->send(new TripConfirmed($trip, $participant));
+
+        return response()->json(['participant_id' => $participant->id], 200);
     }
 }

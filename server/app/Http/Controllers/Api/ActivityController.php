@@ -8,7 +8,6 @@ use App\Http\Resources\ActivityResource;
 use App\Models\Activity;
 use App\Models\Trip;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class ActivityController extends Controller
 {
@@ -22,7 +21,7 @@ class ActivityController extends Controller
         }])->find($tripId);
 
         if (!$trip) {
-            return response()->json(['error' => 'Trip not found'], 404);
+            return response()->json(['error' => 'Trip not found.'], 404);
         }
 
         $differenceInDaysBetweenTripStartAndEnd = Carbon::parse($trip->starts_at)->diffInDays($trip->ends_at);
@@ -55,7 +54,7 @@ class ActivityController extends Controller
         $trip = Trip::find($tripId);
 
         if (!$trip) {
-            return response()->json(['error' => 'Trip not found'], 404);
+            return response()->json(['error' => 'Trip not found.'], 404);
         }
 
         if (Carbon::parse($request->occurs_at)->isBefore($trip->starts_at)) {
@@ -73,37 +72,5 @@ class ActivityController extends Controller
         ]);
 
         return response()->json(['activity_id' => $activity->id], 201);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Activity $activity)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Activity $activity)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Activity $activity)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Activity $activity)
-    {
-        //
     }
 }

@@ -45,7 +45,7 @@ class TripConfirmed extends Mailable
         $formattedStartDate = Carbon::parse($this->trip->starts_at)->translatedFormat('j \d\e F \d\e Y');
         $formattedEndDate = Carbon::parse($this->trip->ends_at)->translatedFormat('j \d\e F \d\e Y');
 
-        $confirmationLink = "http://localhost:80/api/participants/{$this->participant->id}/confirm";
+        $confirmationLink = config('app.url') . "/api/participants/{$this->participant->id}/confirm";
 
         return new Content(
             view: 'mail.trips.confirmed',
