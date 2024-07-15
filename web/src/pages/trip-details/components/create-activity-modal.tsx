@@ -1,25 +1,42 @@
 import { FormEvent, useEffect, useState } from 'react'
-import { Calendar, Tag, X } from 'lucide-react'
+import { Calendar, Clock, Tag, X } from 'lucide-react'
 import DatePicker, { registerLocale } from 'react-datepicker'
+import { useParams } from 'react-router-dom'
 import { ptBR } from 'date-fns/locale'
 registerLocale('ptBR', ptBR)
 
 import 'react-datepicker/dist/react-datepicker.css'
 
 import { Button } from '../../../components/button'
+import { api } from '../../../lib/axios'
+import { formatDate } from '../../../utils/format-date'
+
+interface Trip {
+  id: string
+  destination: string
+  starts_at: string
+  ends_at: string
+  is_confirmed: boolean
+}
 
 interface CreateActivityModalProps {
-  createActivity: (event: FormEvent<HTMLFormElement>) => void
   closeCreateActivityModal: () => void
 }
 
-export function CreateActivityModal({ createActivity, closeCreateActivityModal }: CreateActivityModalProps) {
-  const [occurDate, setOccurDate] = useState<Date | null>(null)
+export function CreateActivityModal({ closeCreateActivityModal }: CreateActivityModalProps) {
+  const { tripId } = useParams()
+
+  const [trip, setTrip] = useState<Trip>()
+
   const [isVisible, setIsVisible] = useState(false)
+  const [title, setTitle] = useState('')
+  const [activityDay, setActivityDay] = useState<Date | null>(null)
+  const [activityTime, setActivityTime] = useState<Date | null>(null)
 
   useEffect(() => {
     setIsVisible(true)
-  }, [])
+    api.get(`trips/${tripId}`).then(response => setTrip(response.data.data))
+  }, [tripId])
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -41,7 +58,27 @@ export function CreateActivityModal({ createActivity, closeCreateActivityModal }
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('click', handleClickOverlay);
     };
-  }, [closeCreateActivityModal]);
+  }, [closeCreateActivityModal])
+
+  async function createActivity(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!title || !activityDay || !activityTime) {
+      return
+    }
+
+    const occursAt = `${formatDate(activityDay, 'yyyy-MM-dd')} ${formatDate(activityTime, 'HH:mm:ss')}`
+
+    await api.post(`/trips/${tripId}/activities`, {
+      title,
+      occurs_at: occursAt,
+    })
+
+    window.document.location.reload()
+  }
+
+  const minDate = trip ? new Date(trip.starts_at) : undefined
+  const maxDate = trip ? new Date(trip.ends_at) : undefined
 
   return (
     <div className="overlay fixed inset-0 bg-black/60 backdrop-blur flex items-center justify-center">
@@ -67,33 +104,53 @@ export function CreateActivityModal({ createActivity, closeCreateActivityModal }
         >
           <div className="h-14 bg-zinc-950 border border-zinc-800 px-4 rounded-lg flex items-center gap-2 flex-1">
             <label htmlFor="title" className="sr-only">Qual a atividade?</label>
-            <Tag className="size-5 text-zinc-400" />
+            <Tag className="size-5 text-zinc-400 shrink-0" />
             <input
               type="text"
-              name="title"
               id="title"
               placeholder="Qual a atividade?"
+              onChange={(event) => setTitle(event.target.value)}
               className="flex-1 bg-transparent leading-[1.4] placeholder:text-zinc-400 outline-none"
+              spellCheck={false}
             />
           </div>
 
-          <div className="h-14 bg-zinc-950 border border-zinc-800 px-4 rounded-lg flex items-center gap-2 flex-1">
-            <label htmlFor="occurs_at" className="sr-only">Data e horário</label>
-            <Calendar className="size-5 text-zinc-400" />
-            <DatePicker
-              selected={occurDate}
-              onChange={(date) => setOccurDate(date)}
-              locale="ptBR"
-              showTimeSelect
-              dateFormat="Pp"
-              className="flex-1 bg-transparent leading-[1.4] placeholder:text-zinc-400 outline-none"
-              placeholderText="Data e horário"
-              id="occurs_at"
-              name="occurs_at"
-            />
+          <div className="flex gap-2">
+            <div className="h-14 bg-zinc-950 border border-zinc-800 px-4 rounded-lg flex items-center gap-2 flex-1">
+              <label htmlFor="activity_day" className="sr-only">Data</label>
+              <Calendar className="size-5 text-zinc-400 shrink-0" />
+              <DatePicker
+                id="activity_day"
+                selected={activityDay}
+                onChange={(date) => setActivityDay(date)}
+                locale="ptBR"
+                dateFormat="d' de 'LLLL"
+                minDate={minDate}
+                maxDate={maxDate}
+                className="flex-1 bg-transparent leading-[1.4] placeholder:text-zinc-400 outline-none"
+                placeholderText="Data"
+              />
+            </div>
+
+            <div className="h-14 bg-zinc-950 border border-zinc-800 px-4 rounded-lg flex items-center gap-2 flex-1">
+              <label htmlFor="activity_time" className="sr-only">Horário</label>
+              <Clock className="size-5 text-zinc-400 shrink-0" />
+              <DatePicker
+                id="activity_time"
+                selected={activityTime}
+                onChange={(date) => setActivityTime(date)}
+                locale="ptBR"
+                showTimeSelect
+                showTimeSelectOnly
+                timeCaption="Horário"
+                dateFormat="HH:mm"
+                className="flex-1 bg-transparent leading-[1.4] placeholder:text-zinc-400 outline-none"
+                placeholderText="Horário"
+              />
+            </div>
           </div>
 
-          <Button type="submit" className="w-full">
+          <Button type="submit" disabled={!title || !activityDay || !activityTime} className="w-full">
             Salvar atividade
           </Button>
         </form>

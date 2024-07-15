@@ -11,7 +11,6 @@ import { DestinationAndDate } from './components/destination-and-date'
 import { Button } from '../../components/button'
 
 export function TripDetailsPage() {
-  // const [activities, setActivities] = useState()
   const [isCreateActivityModalOpen, setIsCreateActivityModalOpen] = useState(false)
   const [isCreateLinkModalOpen, setIsCreateLinkModalOpen] = useState(false)
   const [isConfirmParticipationModalOpen, setIsConfirmParticipationModalOpen] = useState(false)
@@ -38,38 +37,6 @@ export function TripDetailsPage() {
 
   function closeConfirmParticipationModal() {
     setIsConfirmParticipationModalOpen(false)
-  }
-
-  function createActivity(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    const data = new FormData(event.currentTarget)
-    const title = data.get('title')?.toString()
-    const occursAt = data.get('occurs_at')?.toString()
-
-    if (!title || !occursAt) {
-      return
-    }
-
-    console.log({ title, occursAt })
-
-    closeCreateActivityModal()
-  }
-
-  function createLink(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    const data = new FormData(event.currentTarget)
-    const title = data.get('title')?.toString()
-    const url = data.get('url')?.toString()
-
-    if (!title || !url) {
-      return
-    }
-
-    console.log({ title, url })
-
-    closeCreateLinkModal()
   }
 
   function confirmParticipation(event: FormEvent<HTMLFormElement>) {
@@ -113,17 +80,11 @@ export function TripDetailsPage() {
       </main>
 
       {isCreateActivityModalOpen && (
-        <CreateActivityModal
-          createActivity={createActivity}
-          closeCreateActivityModal={closeCreateActivityModal}
-        />
+        <CreateActivityModal closeCreateActivityModal={closeCreateActivityModal} />
       )}
 
       {isCreateLinkModalOpen && (
-        <CreateLinkModal
-          createLink={createLink}
-          closeCreateLinkModal={closeCreateLinkModal}
-        />
+        <CreateLinkModal closeCreateLinkModal={closeCreateLinkModal} />
       )}
 
       {isConfirmParticipationModalOpen && (

@@ -1,14 +1,20 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { Link2, Tag, X } from 'lucide-react'
+import { useParams } from 'react-router-dom'
+
 import { Button } from '../../../components/button'
+import { api } from '../../../lib/axios'
 
 interface CreateLinkModalProps {
-  createLink: (event: FormEvent<HTMLFormElement>) => void
   closeCreateLinkModal: () => void
 }
 
-export function CreateLinkModal({ createLink, closeCreateLinkModal }: CreateLinkModalProps) {
+export function CreateLinkModal({ closeCreateLinkModal }: CreateLinkModalProps) {
+  const { tripId } = useParams()
+
   const [isVisible, setIsVisible] = useState(false)
+  const [title, setTitle] = useState('')
+  const [url, setUrl] = useState('')
 
   useEffect(() => {
     setIsVisible(true)
@@ -34,7 +40,22 @@ export function CreateLinkModal({ createLink, closeCreateLinkModal }: CreateLink
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('click', handleClickOverlay);
     };
-  }, [closeCreateLinkModal]);
+  }, [closeCreateLinkModal])
+
+  async function createLink(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!title || !url) {
+      return
+    }
+
+    await api.post(`/trips/${tripId}/links`, {
+      title,
+      url,
+    })
+
+    window.document.location.reload()
+  }
 
   return (
     <div className="overlay fixed inset-0 bg-black/60 backdrop-blur flex items-center justify-center">
@@ -63,10 +84,11 @@ export function CreateLinkModal({ createLink, closeCreateLinkModal }: CreateLink
             <Tag className="size-5 text-zinc-400" />
             <input
               type="text"
-              name="title"
               id="title"
               placeholder="Título do link"
+              onChange={(event) => setTitle(event.target.value)}
               className="flex-1 bg-transparent leading-[1.4] placeholder:text-zinc-400 outline-none"
+              spellCheck={false}
             />
           </div>
 
@@ -75,14 +97,15 @@ export function CreateLinkModal({ createLink, closeCreateLinkModal }: CreateLink
             <Link2 className="size-5 text-zinc-400" />
             <input
               type="url"
-              name="url"
               id="url"
               placeholder="URL"
+              onChange={(event) => setUrl(event.target.value)}
               className="flex-1 bg-transparent leading-[1.4] placeholder:text-zinc-400 outline-none"
+              spellCheck={false}
             />
           </div>
 
-          <Button type="submit" className="w-full">
+          <Button type="submit" disabled={!title || !url} className="w-full">
             Salvar link
           </Button>
         </form>

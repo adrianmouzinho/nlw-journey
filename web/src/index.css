@@ -14,9 +14,20 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0px 1000px #09090b inset !important;
-    box-shadow: 0 0 0px 1000px #09090b inset !important;
-    -webkit-text-fill-color: #fafafa !important;
-    color: #fafafa !important;
-    caret-color: #fafafa;
+  -webkit-box-shadow: 0 0 0px 1000px #09090b inset !important;
+  box-shadow: 0 0 0px 1000px #09090b inset !important;
+  -webkit-text-fill-color: #fafafa !important;
+  color: #fafafa !important;
+  caret-color: #fafafa;
+}
+
+.rdp-day:hover, .rdp-nav_button:hover {
+  color: #1a2e05;
+}
+
+.rdp-day_selected, 
+.rdp-day_selected:focus-visible, 
+.rdp-day_selected:hover {
+  color: #1a2e05;
+  background-color: #bef264;
 }

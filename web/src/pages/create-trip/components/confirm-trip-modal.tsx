@@ -4,11 +4,22 @@ import { Mail, User, X } from 'lucide-react'
 import { Button } from '../../../components/button'
 
 interface ConfirmTripModalProps {
+  ownerName: string
+  ownerEmail: string
   createTrip: (event: FormEvent<HTMLFormElement>) => void
   closeConfirmTripModal: () => void
+  setOwnerName: (ownerName: string) => void
+  setOwnerEmail: (ownerEmail: string) => void
 }
 
-export function ConfirmTripModal({ createTrip, closeConfirmTripModal }: ConfirmTripModalProps) {
+export function ConfirmTripModal({
+  createTrip,
+  closeConfirmTripModal,
+  setOwnerEmail,
+  ownerEmail,
+  setOwnerName,
+  ownerName,
+}: ConfirmTripModalProps) {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
@@ -35,7 +46,7 @@ export function ConfirmTripModal({ createTrip, closeConfirmTripModal }: ConfirmT
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('click', handleClickOverlay);
     };
-  }, [closeConfirmTripModal]);
+  }, [closeConfirmTripModal])
 
   return (
     <div className="overlay fixed inset-0 bg-black/60 backdrop-blur flex items-center justify-center">
@@ -67,7 +78,9 @@ export function ConfirmTripModal({ createTrip, closeConfirmTripModal }: ConfirmT
               name="name"
               id="name"
               placeholder="Seu nome completo"
+              onChange={(event) => setOwnerName(event.target.value)}
               className="flex-1 bg-transparent leading-[1.4] placeholder:text-zinc-400 outline-none"
+              spellCheck={false}
             />
           </div>
 
@@ -79,11 +92,13 @@ export function ConfirmTripModal({ createTrip, closeConfirmTripModal }: ConfirmT
               name="email"
               id="email"
               placeholder="Seu e-mail pessoal"
+              onChange={(event) => setOwnerEmail(event.target.value)}
               className="flex-1 bg-transparent leading-[1.4] placeholder:text-zinc-400 outline-none"
+              spellCheck={false}
             />
           </div>
 
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" disabled={!ownerName || !ownerEmail}>
             Confirmar criação da viagem
           </Button>
         </form>

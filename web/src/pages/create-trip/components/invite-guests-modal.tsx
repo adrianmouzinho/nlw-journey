@@ -94,6 +94,7 @@ export function InviteGuestsModal({
               id="email"
               placeholder="Digite o e-mail do convidado"
               className="flex-1 bg-transparent leading-[1.4] placeholder:text-zinc-400 outline-none"
+              spellCheck={false}
             />
           </div>
 
